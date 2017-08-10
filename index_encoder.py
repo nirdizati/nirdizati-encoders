@@ -56,7 +56,7 @@ class IndexBasedEncoder:
 					history_data.append(history[i])
 				else:
 					history_data.append(0)
-				return history_data
+				return [case_id, last_event_timestamp - event_timestamp, event_timestamp - first_event_timestamp, history_data]
 		else:
 			return [case_id, last_event_timestamp - event_timestamp, event_timestamp - first_event_timestamp, activities_executed, activity_name.rstrip('_')]
 
