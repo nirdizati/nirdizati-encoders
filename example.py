@@ -1,7 +1,12 @@
-import index_encoder
+import encoder
 
-index = index_encoder.IndexBasedEncoder()
+encoder = encoder.Encoder()
 
-index.set_log("Production.xes");
-index.remaining_time_encode()
+encoder.read_csv("sample_trace.csv")
 
+import frequency_encoder
+
+frequency_encoder = frequency_encoder.FrequencyEncoder()
+encoded_trace = frequency_encoder.encode_trace(encoder.df)
+
+print encoded_trace
