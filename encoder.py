@@ -119,7 +119,7 @@ class Encoder:
 				event_nr += 1
 
 		df = pd.DataFrame(columns=header, data=data)
-		self.write_pandas_to_csv(df, "logdata/xes_to_csv_"+xes+".csv")
+		self.write_df_to_csv(df, "xes_to_csv_"+xes+".csv")
 		self.df = df
 		return df
 
@@ -152,6 +152,6 @@ class Encoder:
 		first_event_timestamp = dt.strptime(first_event_timestamp, "%Y-%m-%d %H:%M:%S")
 		return (event_timestamp - first_event_timestamp).total_seconds()
 
-	def write_pandas_to_csv(self, df, filename):	
+	def write_df_to_csv(self, df, filename):	
 		df.to_csv(filename,sep=',',mode='w+', index=False)
 		return filename
