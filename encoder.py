@@ -119,7 +119,6 @@ class Encoder:
 				event_nr += 1
 
 		df = pd.DataFrame(columns=header, data=data)
-		self.write_df_to_csv(df, "xes_to_csv_"+xes+".csv")
 		self.df = df
 		return df
 
