@@ -8,7 +8,7 @@ from os.path import isfile
 import pandas as pd
 import numpy as np
 
-class FrequencyEncoder:
+class BooleanEncoder:
 
 	def __init__(self):
 		self.log = None
@@ -32,7 +32,7 @@ class FrequencyEncoder:
 				case_data = []
 				event_length =  j+1
 				for event in events:
-					case_data.append(len(df[(df['activity_name'] == event) & (df['event_nr'] <= event_length)]))
+					case_data.append(len(df[(df['activity_name'] == event) & (df['event_nr'] <= event_length)]) > 0)
 				case_data.append(case)
 				case_data.append(event_length)
 				remaining_time = data_encoder.calculate_remaining_time(df, event_length)
