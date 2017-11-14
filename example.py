@@ -15,6 +15,7 @@ def frequency_encode(data):
 def simple_index_encode(data, prefix):
 	import simple_index_encoder
 	encoding_method = simple_index_encoder.SimpleIndexEncoder()
+	print data
 	encoded_trace = encoding_method.encode_trace(data, prefix)
 	return encoded_trace
 
@@ -30,23 +31,33 @@ def complex_encode(data, attributes, prefix):
 	encoded_trace = encoding_method.encode_trace(data, attributes, prefix)
 	return encoded_trace
 
+def intercase_encode(data, filename, level):
+	import intercase_encoder
+	encoding_method = intercase_encoder.IntercaseEncoder()
+	encoded_trace = encoding_method.encode_trace(data, level, filename)
+	return encoded_trace
+
 encoder = encoder.Encoder()
 encoder.set_path(".")
 filename = "Productiontrim.xes"
 encoder.xes_to_csv(filename)
 encoder.write_df_to_csv(encoder.df, "xes_to_csv_"+filename+".csv")
 
-encoded_trace = boolean_encode(encoder.df)
-encoder.write_df_to_csv(encoded_trace, "boolean_encode_"+filename+".csv")
+# encoded_trace = boolean_encode(encoder.df)
+# encoder.write_df_to_csv(encoded_trace, "boolean_encode_"+filename+".csv")
 
-encoded_trace = frequency_encode(encoder.df)
-encoder.write_df_to_csv(encoded_trace, "frequency_encode_"+filename+".csv")
+# encoded_trace = frequency_encode(encoder.df)
+# encoder.write_df_to_csv(encoded_trace, "frequency_encode_"+filename+".csv")
 
-encoded_trace = simple_index_encode(encoder.df, 2)
-encoder.write_df_to_csv(encoded_trace, "simple_index_encode_"+filename+".csv")
+# encoded_trace = simple_index_encode(encoder.df, 5)
+# print encoded_trace
+# encoder.write_df_to_csv(encoded_trace, "simple_index_encode_"+filename+".csv")
 
-encoded_trace = index_latest_payload_encode(encoder.df, encoder.event_attributes, 2)
-encoder.write_df_to_csv(encoded_trace, "index_latest_payload_encode_"+filename+".csv")
+# encoded_trace = index_latest_payload_encode(encoder.df, encoder.event_attributes, 2)
+# encoder.write_df_to_csv(encoded_trace, "index_latest_payload_encode_"+filename+".csv")
 
-encoded_trace = complex_encode(encoder.df, encoder.event_attributes, 2)
-encoder.write_df_to_csv(encoded_trace, "complex_encode_"+filename+".csv")
+# encoded_trace = complex_encode(encoder.df, encoder.event_attributes, 2)
+# encoder.write_df_to_csv(encoded_trace, "complex_encode_"+filename+".csv")
+level = 1
+encoded_trace = intercase_encode(encoder.df, filename, level=level)
+encoder.write_df_to_csv(encoded_trace, "intercase_encode_"+filename+"_level"+str(level)+".csv")
