@@ -34,15 +34,16 @@ def complex_encode(data, attributes, prefix):
 def intercase_encode(data, filename, level):
 	import intercase_encoder
 	encoding_method = intercase_encoder.IntercaseEncoder()
-	encoded_trace = encoding_method.encode_trace(data, level, filename)
+	encoded_trace = encoding_method.encode_trace(data, level, filename, ['org:resource'])
 	return encoded_trace
 
 encoder = encoder.Encoder()
 encoder.set_path(".")
-filename = "Productiontrim.xes"
+filename = "Production.xes"
 encoder.xes_to_csv(filename)
 encoder.write_df_to_csv(encoder.df, "xes_to_csv_"+filename+".csv")
 
+# uncomment to test the other encoding methods
 # encoded_trace = boolean_encode(encoder.df)
 # encoder.write_df_to_csv(encoded_trace, "boolean_encode_"+filename+".csv")
 
@@ -58,6 +59,11 @@ encoder.write_df_to_csv(encoder.df, "xes_to_csv_"+filename+".csv")
 
 # encoded_trace = complex_encode(encoder.df, encoder.event_attributes, 2)
 # encoder.write_df_to_csv(encoded_trace, "complex_encode_"+filename+".csv")
-level = 1
+
+# level 0, 1, 2 and 3 only
+level = 2
 encoded_trace = intercase_encode(encoder.df, filename, level=level)
+train, test = encoder.split_data(encoded_trace)
 encoder.write_df_to_csv(encoded_trace, "intercase_encode_"+filename+"_level"+str(level)+".csv")
+encoder.write_df_to_csv(train, "intercase_encode_train"+filename+"_level"+str(level)+".csv")
+encoder.write_df_to_csv(test, "intercase_encode_test"+filename+"_level"+str(level)+".csv")

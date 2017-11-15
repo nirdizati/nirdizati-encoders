@@ -17,25 +17,25 @@ class IntercaseEncoder:
 	def set_log(self, log):
 		self.log = log
 
-	def add_next_state(self, df):
+	def add_next_state(self, data):
 		pd.options.mode.chained_assignment = None
-		df['next_state'] = ''
-		df['next_time'] = 0
-		df['next_dur'] = 0
-		num_rows = len(df)
+		data['next_state'] = ''
+		data['next_time'] = 0
+		data['next_dur'] = 0
+		num_rows = len(data)
 		for i in range(0, num_rows - 1):
-			if df.at[i, 'case_id'] == df.at[i + 1, 'case_id']:
-				df.at[i, 'next_state'] = df.at[i + 1, 'activity_name']
-				df.at[i, 'next_time'] = df.at[i + 1, 'time']
-				df.at[i, 'next_dur'] = df.at[i + 1, 'time'] - df.at[i, 'time']
+			if data.at[i, 'case_id'] == data.at[i + 1, 'case_id']:
+				data.at[i, 'next_state'] = data.at[i + 1, 'activity_name']
+				data.at[i, 'next_time'] = data.at[i + 1, 'time']
+				data.at[i, 'next_dur'] = data.at[i + 1, 'time'] - data.at[i, 'time']
 			else:
-				df.at[i, 'next_state'] = 99
-				df.at[i, 'next_time'] = df.at[i, 'time']
-				df.at[i, 'next_dur'] = 0
-		df.at[num_rows-1, 'next_state'] = 99
-		df.at[num_rows-1, 'next_time'] = df.at[num_rows-1, 'time']
-		df.at[num_rows-1, 'next_dur'] = 0
-		return df
+				data.at[i, 'next_state'] = 99
+				data.at[i, 'next_time'] = data.at[i, 'time']
+				data.at[i, 'next_dur'] = 0
+		data.at[num_rows-1, 'next_state'] = 99
+		data.at[num_rows-1, 'next_time'] = data.at[num_rows-1, 'time']
+		data.at[num_rows-1, 'next_dur'] = 0
+		return data
 
 	def get_index_position(self, column_data, unique_data):
 		converted_values = []
@@ -43,52 +43,48 @@ class IntercaseEncoder:
 			converted_values.append(unique_data.index(column_data[i]))
 		return converted_values
 
-	def create_initial_log(self, df, name):
+	def create_initial_log(self, data, name):
+		data = self.add_next_state(data)
+		data = self.add_query_remaining(data)
+		return data
 
-		self.add_next_state(df)
-		self.add_query_remaining(df)
-		# os.path.splitext(path)[0]
-		version = "_level_0"+name
-		# filename = write_pandas_to_csv(df, version, False)
-		return df
-
-	def add_query_remaining(self, df):
-		df['elapsed_time'] = 0
-		df['total_time'] = 0
-		df['remaining_time'] = 0
-		df['history'] = ""
+	def add_query_remaining(self, data):
+		data['elapsed_time'] = 0
+		data['total_time'] = 0
+		data['remaining_time'] = 0
+		data['history'] = ""
 		ids = []
 		total_Times = []
-		num_rows = len(df)
+		num_rows = len(data)
 		temp_elapsed = 0
-		prefix = str(df.at[0, 'activity_name'])
-		df.at[0, 'history'] = prefix
+		prefix = str(data.at[0, 'activity_name'])
+		data.at[0, 'history'] = prefix
 
 		for i in range(1, num_rows):
-			if df.at[i, 'case_id'] == df.at[i - 1, 'case_id']:
-				temp_elapsed += df.at[i - 1, 'next_dur']
-				df.at[i, 'elapsed_time'] = temp_elapsed
-				prefix = prefix + '_' + str(df.at[i, 'activity_name'])
-				df.at[i, 'history'] = prefix
+			if data.at[i, 'case_id'] == data.at[i - 1, 'case_id']:
+				temp_elapsed += data.at[i - 1, 'next_dur']
+				data.at[i, 'elapsed_time'] = temp_elapsed
+				prefix = prefix + '_' + str(data.at[i, 'activity_name'])
+				data.at[i, 'history'] = prefix
 			else:
-				ids.append(df.at[i - 1, 'case_id'])
+				ids.append(data.at[i - 1, 'case_id'])
 				total_Times.append(temp_elapsed)
 				temp_elapsed = 0
-				prefix = str(df.at[i, 'activity_name'])
-				df.at[i, 'history'] = prefix
+				prefix = str(data.at[i, 'activity_name'])
+				data.at[i, 'history'] = prefix
 
-		ids.append(df.at[num_rows - 1, 'case_id'])
-		total_Times.append(df.at[num_rows - 1, 'elapsed_time'])
+		ids.append(data.at[num_rows - 1, 'case_id'])
+		total_Times.append(data.at[num_rows - 1, 'elapsed_time'])
 		for i in range(0, num_rows):
 			try:
-				ind = ids.index(df.at[i, 'case_id'])
+				ind = ids.index(data.at[i, 'case_id'])
 				total_ = total_Times[ind]
-				df.at[i, 'total_time'] = total_
-				df.at[i, 'remaining_time'] = total_ - df.at[i, 'elapsed_time']
+				data.at[i, 'total_time'] = total_
+				data.at[i, 'remaining_time'] = total_ - data.at[i, 'elapsed_time']
 			except ValueError:
 				print 'err'
 				return ValueError
-		return
+		return data
 
 	def prepare_data(self, data, columns):
 		data_encoder = encoder.Encoder()
@@ -96,7 +92,6 @@ class IntercaseEncoder:
 		event_timestamp = pd.DatetimeIndex(data['time'])
 		event_timestamp = event_timestamp.astype(np.int64)
 		data['time'] = event_timestamp
-		
 		data['activity_name'] = self.get_index_position(data['activity_name'].tolist(), events.tolist())
 
 		data = data[columns]
@@ -140,10 +135,11 @@ class IntercaseEncoder:
 		return data, hist_len
 
 	# level 1 and 2 encoding
-	def add_queues(self, data, state_list):
+	def add_queues(self, data, state_list, level=1):
 		event_queue = []
 		tuple = []
-		data['total_q'] = 0
+		if level == 1:
+			data['total_q'] = 0
 
 		for s in state_list:
 			col_name = 'queue' + '_' + str(s)
@@ -153,7 +149,6 @@ class IntercaseEncoder:
 
 		num_rows = len(data)
 		for i in range(0, num_rows):
-			print (str(i) + ' queueing calculation')
 			cur_time = data.at[i, 'time']
 			next_time = data.at[i, 'next_time']
 			cur_state = data.at[i, 'activity_name']
@@ -161,14 +156,15 @@ class IntercaseEncoder:
 			tuple = [cur_time, next_time]
 			event_queue[ind].append(tuple)
 			self.update_event_queue(event_queue, cur_time)
-			total_q = 0
-			for j, s in enumerate(state_list):
-				col_name1 = 'queue' + '_' + str(s)
-				ind = state_list.index(s)
-				x = self.find_q_len_ttiq(event_queue[ind], cur_time)
-				data.at[i, col_name1] = x
-				total_q += x
-			data.at[i,'total_q'] = total_q
+			if level == 1:
+				total_q = 0
+				for j, s in enumerate(state_list):
+					col_name1 = 'queue' + '_' + str(s)
+					ind = state_list.index(s)
+					x = self.find_q_len_ttiq(event_queue[ind], cur_time)
+					data.at[i, col_name1] = x
+					total_q += x
+				data.at[i,'total_q'] = total_q
 
 		return data
 
@@ -194,19 +190,100 @@ class IntercaseEncoder:
 		q_len = len(event_queue)
 		return q_len
 
-	def queue_level(self, data):
+	def queue_level(self, data, level=1):
 		state_list = self.get_states(data)
-		data = self.add_queues(data, state_list)
+		data = self.add_queues(data, state_list, level)
 		return data
 
 	# level 3
+	def multiclass(self, data):
+		data = data.reset_index(drop=True)
+		pref_list = self.get_prefixes(data)
+		data = self.add_mc_queues(data, pref_list)
+		return data
+
+	def get_prefixes(self, data):
+		memorylen = 3
+		pref_list = []
+		for i in range(0, len(data)):
+			hist = data.at[i, 'history']
+			parsed_hist = str(hist).split("_")
+			if len(parsed_hist)<=memorylen:
+
+				try:
+					ind = pref_list.index(hist)
+				except ValueError:
+					pref_list.append(hist)
+			else:
+				#History is too long.
+				hist = ''
+				for k in range(0, len(parsed_hist)):
+					if k > memorylen-1:
+						break
+					else:
+						if hist=='':
+							hist = hist + str(parsed_hist[len(parsed_hist) - k - 1])
+						else:
+							hist = str(parsed_hist[len(parsed_hist) - k - 1])+'_'+ hist
+
+				try:
+					ind = pref_list.index(hist)
+				except ValueError:
+					pref_list.append(hist)
+		return pref_list
+
+	def add_mc_queues(self, data, pref_list):
+		event_queue = []
+		tuple = []
+		recent_occur = []
+		delta = []
+		print "Number of prefixes is "+str(len(pref_list))
+		for k,s in enumerate(pref_list):
+			col_name = 'pref' + '_' + str(k)
+			data[col_name] = 0
+			event_queue.append(tuple)
+			tuple = []
+
+		num_rows = len(data)
+		for i in range(0, num_rows):
+			# cur_state = r.state.values[0]
+			cur_time = data.at[i, 'time']
+			next_time = data.at[i, 'next_time']
+			#cur_state = df.at[i, 'activity_name']
+			memorylen= 3
+			hist = data.at[i, 'history']
+			parsed_hist = str(hist).split("_")
+			if len(parsed_hist)>memorylen:
+
+				#History is too long.
+				hist = ''
+				for k in range(0, len(parsed_hist)):
+					if k > memorylen-1:
+						break
+					else:
+						if hist=='':
+							hist = hist + str(parsed_hist[len(parsed_hist) - k - 1])
+						else:
+							hist = str(parsed_hist[len(parsed_hist) - k - 1])+'_'+ hist
+
+			ind = pref_list.index(hist)
+			tuple = [cur_time, next_time]
+			event_queue[ind].append(tuple)
+			self.update_event_queue(event_queue, cur_time)
+
+			for j, s in enumerate(pref_list):
+				col_name1 = 'pref' + '_' + str(j)
+				ind = pref_list.index(s)
+				data.at[i, col_name1] = self.find_mc_q(event_queue[ind], cur_time)
+		return data
+
 	def find_mc_q(self, event_queue, cur_time):
 		q_len = len(event_queue)
 		return q_len
 
-	# level 3 encoding
-	def intercase_encode(self, data, state_list, query_name, level):
-		cols = ['org:resource']
+	# intercase encoding
+	def intercase_encode(self, data, state_list, query_name, level, other_columns=[]):
+		cols = other_columns
 
 		data, hist_len = self.history_encoding_new(data)
 
@@ -224,39 +301,31 @@ class IntercaseEncoder:
 		if level == 3:
 			for k,s in enumerate(state_list):
 				cols.append('pref'+'_'+str(k))
-		elif level == 2:
-			for k,s in enumerate(state_list):
-				cols.append('queue'+'_'+str(k))
-		elif level == 1:
+		elif level == 2 or level == 1:
 			for k,s in enumerate(state_list):
 				cols.append('queue'+'_'+str(k))
 
 		data = data[cols]
 		data = pd.concat([data, dummies], axis=1)
-
-		print data.head(3)
-
 		return data
 
-	def encode_trace(self, data, level=0, columns=None, name=""):
+	def encode_trace(self, data, level=0, columns=None, name="", other_columns=[]):
 		
-		columns = ['case_id','time','activity_name','org:resource']
+		columns = ['case_id','time','activity_name'] + other_columns
 		data = self.prepare_data(data, columns)
 		data = self.create_initial_log(data, name)
 		data = self.order_csv_time(data)
 		state_list = []
 		query_name = 'remaining_time'
+		state_list = {}
 
 		if level == 3:
-			print 3
-		elif level == 2:
-			print 2
-		elif level == 1:
-			print 1
-			data = self.queue_level(data)
+			data = self.multiclass(data)
+			state_list = self.get_prefixes(data)
+		elif level == 2 or level == 1:
+			data = self.queue_level(data, level)
+			state_list = self.get_states(data)
 
-		state_list = self.get_states(data)
-
-		self.intercase_encode(data, state_list, query_name, level)
+		self.intercase_encode(data, state_list, query_name, level, other_columns)
 
 		return data

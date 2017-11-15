@@ -6,6 +6,7 @@ import time
 from os.path import isfile
 
 import pandas as pd
+import numpy as np
 import untangle
 
 class Encoder:
@@ -154,3 +155,20 @@ class Encoder:
 	def write_df_to_csv(self, df, filename):	
 		df.to_csv(filename,sep=',',mode='w+', index=False)
 		return filename
+
+	def split_data(self, data):
+		cases = data['case_id'].unique()
+		import random
+		random.shuffle(cases)
+
+		cases_train_point = int(len(cases) * 0.8)
+
+		train_cases = cases[:cases_train_point]
+
+		ids = []
+		for i in range(0, len(data)):
+		    ids.append(data['case_id'][i] in train_cases)
+
+		train_data = data[ids]
+		test_data = data[np.invert(ids)]
+		return train_data, test_data
