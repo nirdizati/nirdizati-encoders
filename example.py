@@ -49,14 +49,14 @@ encoder.write_df_to_csv(encoder.df, "xes_to_csv_"+filename+".csv")
 # encoded_trace = frequency_encode(encoder.df)
 # encoder.write_df_to_csv(encoded_trace, "frequency_encode_"+filename+".csv")
 
-encoded_trace = simple_index_encode(encoder.df, 1)
-encoder.write_df_to_csv(encoded_trace, "simple_index_encode_"+filename+".csv")
+# encoded_trace = simple_index_encode(encoder.df, 1)
+# encoder.write_df_to_csv(encoded_trace, "simple_index_encode_"+filename+".csv")
 
-# encoded_trace = index_latest_payload_encode(encoder.df, encoder.event_attributes, 2)
+# encoded_trace = index_latest_payload_encode(encoder.df, encoder.event_attributes, 1)
 # encoder.write_df_to_csv(encoded_trace, "index_latest_payload_encode_"+filename+".csv")
 
-# encoded_trace = complex_encode(encoder.df, encoder.event_attributes, 2)
-# encoder.write_df_to_csv(encoded_trace, "complex_encode_"+filename+".csv")
+encoded_trace = complex_encode(encoder.df, encoder.event_attributes, 2)
+encoder.write_df_to_csv(encoded_trace, "complex_encode_"+filename+".csv")
 
 # level 0, 1, 2 and 3 only
 # level = 2
